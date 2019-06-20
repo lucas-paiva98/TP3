@@ -79,44 +79,46 @@ void printGraph(struct Graph* graph) {
 } 
 
 // The function to print vertex cover 
-void printVertexCover(struct Graph graph, int vertexQuantity) { 
+void printVertexCover(struct Graph* graph, int vertexQuantity) { 
     // Initialize all vertices as not visited. 
     int visited[vertexQuantity]; 
     for (int i=0; i < vertexQuantity; i++) 
         visited[i] = 0; 
   
-    list<int>::iterator i; 
-  
     // Consider all edges one by one 
-    for (int u=0; u<V; u++) 
-    { 
+    for (int u=0; u < vertexQuantity; u++) { 
         // An edge is only picked when both visited[u] and visited[v] 
         // are false 
-        if (visited[u] == false) 
-        { 
+        if (visited[u] == 0) { 
             // Go through all adjacents of u and pick the first not 
             // yet visited vertex (We are basically picking an edge 
-            // (u, v) from remaining edges. 
-            for (i= adj[u].begin(); i != adj[u].end(); ++i) 
-            { 
-                int v = *i; 
-                if (visited[v] == false) 
-                { 
+            // (u, v) from remaining edges.
+          struct AdjListNode* pCrawl = graph->array[u].head; 
+            while(pCrawl) {
+                int v = pCrawl->value;
+                printf("Adj: %d\n", v); 
+                if (visited[v] == 0) { 
                      // Add the vertices (u, v) to the result set. 
                      // We make the vertex u and v visited so that 
                      // all edges from/to them would be ignored 
-                     visited[v] = true; 
-                     visited[u]  = true; 
+                     visited[v] = 1; 
+                     visited[u]  = 1; 
                      break; 
-                } 
+                }
+              pCrawl = pCrawl->next;  
             } 
         } 
     } 
-  
+  int count = 0;
     // Print the vertex cover 
-    for (int i=0; i<V; i++) 
-        if (visited[i]) 
-          cout << i << " "; 
+    for (int i=0; i<vertexQuantity; i++) {
+        if (visited[i]){
+          printf("%d\n", i);  
+          count++;
+        }
+    }
+    printf("Size: %d", count);
+     
 }
 
 int main(int argc, char const *argv[]) {
@@ -126,7 +128,7 @@ int main(int argc, char const *argv[]) {
   int auxU = 0;
   int auxV = 0;
 
-	filePaths = fopen("trilha1.txt", "r");
+	filePaths = fopen("trilha3.txt", "r");
 
 	if (filePaths == NULL) {
 		printf("Error! Cant't open the file.\n");
@@ -142,7 +144,6 @@ int main(int argc, char const *argv[]) {
     addEdge(graph, auxU, auxV);
 	}
 
-  printGraph(graph); 
-
+  printVertexCover(graph, vertexQuantity);
 	return 0;
 }
