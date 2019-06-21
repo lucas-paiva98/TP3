@@ -1,14 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "utils.h"
 
 // A structure to represent an adjacency list node 
-struct AdjListNode { 
+struct AdjListNode {
   int value; 
   struct AdjListNode* next; 
 }; 
   
 // A structure to represent an adjacency list 
-struct AdjList { 
+struct AdjList {
+  int size;
   struct AdjListNode *head;  
 }; 
 
@@ -27,98 +29,119 @@ struct AdjListNode* newAdjListNode(int value) {
 
 // A utility function that creates a graph of V vertices 
 struct Graph* createGraph(int vertexQuantity) { 
-    struct Graph* graph =  
-        (struct Graph*) malloc(sizeof(struct Graph)); 
-    graph->vertexs = vertexQuantity; 
-  
-    // Create an array of adjacency lists.  Size of  
-    // array will be vertexQuantity 
-    graph->array =  
-      (struct AdjList*) malloc(vertexQuantity * sizeof(struct AdjList)); 
-  
-    // Initialize each adjacency list as empty by  
-    // making head as NULL 
-    int i; 
-    for (i = 0; i < vertexQuantity; ++i) 
-        graph->array[i].head = NULL; 
-  
-    return graph; 
+  struct Graph* graph = (struct Graph*) malloc(sizeof(struct Graph)); 
+  graph->vertexs = vertexQuantity; 
+
+  // Create an array of adjacency lists.  Size of  
+  // array will be vertexQuantity 
+  graph->array = (struct AdjList*) malloc(vertexQuantity * sizeof(struct AdjList)); 
+
+  // Initialize each adjacency list as empty by  
+  // making head as NULL 
+  int i; 
+  for (i = 0; i < vertexQuantity; ++i) 
+    graph->array[i].head = NULL; 
+
+  return graph; 
 } 
   
 // Adds an edge to an undirected graph 
-void addEdge(struct Graph* graph, int src, int dest) { 
-    // Add an edge from src to dest.  A new node is  
-    // added to the adjacency list of src.  The node 
-    // is added at the begining 
-    struct AdjListNode* newNode = newAdjListNode(dest); 
-    newNode->next = graph->array[src].head; 
-    graph->array[src].head = newNode; 
-  
-    // Since graph is undirected, add an edge from 
-    // dest to src also 
-    newNode = newAdjListNode(src); 
-    newNode->next = graph->array[dest].head; 
-    graph->array[dest].head = newNode; 
+void addEdge(struct Graph* graph, int src, int dest) {
+  struct AdjListNode* newNode = newAdjListNode(dest); 
+  newNode->next = graph->array[src].head; 
+  graph->array[src].head = newNode;
+  graph->array[src].size++;
+
+  newNode = newAdjListNode(src); 
+  newNode->next = graph->array[dest].head; 
+  graph->array[dest].head = newNode; 
 } 
 
 // Remove those strutures to use only the ones needed 
 // and to make east to understand the constrution 
 void printGraph(struct Graph* graph) { 
-    int v; 
-    for (v = 0; v < graph->vertexs; ++v) 
-    { 
-        struct AdjListNode* pCrawl = graph->array[v].head; 
-        printf("\n Adjacency list of vertex %d\n head ", v); 
-        while (pCrawl) 
-        { 
-            printf("-> %d", pCrawl->value); 
-            pCrawl = pCrawl->next; 
-        } 
-        printf("\n"); 
+  int v; 
+  for (v = 0; v < graph->vertexs; ++v) { 
+    struct AdjListNode* pCrawl = graph->array[v].head; 
+    printf("\n Adjacency list of vertex %d\n head ", v); 
+    while (pCrawl) {
+      printf("-> %d", pCrawl->value); 
+      pCrawl = pCrawl->next; 
     } 
-} 
+    printf("\n"); 
+  } 
+}
 
-// The function to print vertex cover 
-void printVertexCover(struct Graph* graph, int vertexQuantity) { 
-    // Initialize all vertices as not visited. 
-    int visited[vertexQuantity]; 
-    for (int i=0; i < vertexQuantity; i++) 
-        visited[i] = 0; 
-  
-    // Consider all edges one by one 
-    for (int u=0; u < vertexQuantity; u++) { 
-        // An edge is only picked when both visited[u] and visited[v] 
-        // are false 
-        if (visited[u] == 0) { 
-            // Go through all adjacents of u and pick the first not 
-            // yet visited vertex (We are basically picking an edge 
-            // (u, v) from remaining edges.
-          struct AdjListNode* pCrawl = graph->array[u].head; 
-            while(pCrawl) {
-                int v = pCrawl->value;
-                printf("Adj: %d\n", v); 
-                if (visited[v] == 0) { 
-                     // Add the vertices (u, v) to the result set. 
-                     // We make the vertex u and v visited so that 
-                     // all edges from/to them would be ignored 
-                     visited[v] = 1; 
-                     visited[u]  = 1; 
-                     break; 
-                }
-              pCrawl = pCrawl->next;  
-            } 
-        } 
-    } 
-  int count = 0;
-    // Print the vertex cover 
-    for (int i=0; i<vertexQuantity; i++) {
-        if (visited[i]){
-          printf("%d\n", i);  
-          count++;
+int min(int a, int b) {
+  if (a < b) {
+    return a;
+  }
+  return b;
+}
+
+void printVertexCover(struct Graph* graph, int vertexQuantity) {
+  int visited[vertexQuantity]; 
+  for (int i=0; i < vertexQuantity; i++) 
+    visited[i] = 0; 
+
+  for (int u=0; u < vertexQuantity; u++) {
+    // Select a vertex that hasn't visited yet 
+    if (visited[u] == 0) {
+      // Go to all the adjacent vertexs of u  
+      struct AdjListNode* adjVertex = graph->array[u].head;
+      while(adjVertex) {
+        int v = adjVertex->value;
+        if (visited[v] == 0) {
+          visited[v] = 1; 
+          visited[u]  = 1; 
+          break; 
         }
+        adjVertex = adjVertex->next;  
+      } 
+    } 
+  } 
+
+int count = 0;
+  for (int i=0; i < vertexQuantity; i++) {
+    if (visited[i]){
+      printf("%d\n", i);
+      count++;  
     }
-    printf("Size: %d", count);
-     
+  }
+  printf("COunt : %d", count);
+}
+
+int minVertexCover(struct Graph* graph, int node, int isIn, int **cache, int *parent) {
+  int adjacentSize = graph->array[node].size; 
+  if(adjacentSize == 0) {
+    return isIn;
+  }
+  else if (cache[node][isIn] != -1) {
+    return cache[node][isIn];
+  }
+
+  int sum = 0;
+  struct AdjListNode* adjVertex = graph->array[node].head;
+
+  while (adjVertex) {
+    int v = adjVertex->value;
+    if (v != parent[node]) {
+      parent[v] = node;
+
+      if (isIn == 0) {
+        sum += minVertexCover(graph, v, 1, cache, parent);
+      }
+      else {
+        sum += min(minVertexCover(graph, v, 1, cache, parent), minVertexCover(graph, v, 0, cache, parent));
+      }
+    }
+    adjVertex = adjVertex->next;      
+  }
+  
+  cache[node][isIn] = sum + isIn;
+
+  return cache[node][isIn];
+  
 }
 
 int main(int argc, char const *argv[]) {
@@ -128,7 +151,7 @@ int main(int argc, char const *argv[]) {
   int auxU = 0;
   int auxV = 0;
 
-	filePaths = fopen("trilha3.txt", "r");
+	filePaths = fopen("t1.txt", "r");
 
 	if (filePaths == NULL) {
 		printf("Error! Cant't open the file.\n");
@@ -138,12 +161,27 @@ int main(int argc, char const *argv[]) {
 	fscanf(filePaths, "%d %d", &vertexQuantity, &edgeQuantity);
 
   struct Graph* graph = createGraph(vertexQuantity); 
+  
+  int **cache = allocateMatrixInt(vertexQuantity, 1);
+  int parent[vertexQuantity];
+  int vertexCover = 0;
+  for (int i = 0; i < vertexQuantity; i++) {
+    parent[i] = -1;
+    for (int j = 0; j < 2; j++) {
+      cache[i][j] = -1;
+    }
+	}
 
 	for (int i = 0; i < edgeQuantity; i++) {
     fscanf(filePaths, "%d %d", &auxU, &auxV);
     addEdge(graph, auxU, auxV);
 	}
 
-  printVertexCover(graph, vertexQuantity);
+  struct AdjListNode* u = graph->array[0].head;
+
+  // printVertexCover(graph, vertexQuantity);
+  vertexCover = min(minVertexCover(graph, u->value, 0, cache, parent), minVertexCover(graph, u->value, 1, cache, parent));
+
+  printf("%d", vertexCover);
 	return 0;
 }
